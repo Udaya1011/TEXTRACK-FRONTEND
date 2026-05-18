@@ -165,13 +165,10 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
     doc.setTextColor(24, 24, 27);
-    doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 176, 16, { align: "right" });
+    doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 16, { align: "right" });
     
     const styleValue = product.styleName || product.name || product._id;
-    doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
-
-    // Draw the scannable Square QR Code
-    await drawQRCode(doc, 180, 11, 16, styleValue);
+    doc.text(`STYLE: ${styleValue.toUpperCase()}`, 196, 23, { align: "right" });
 
     // 4. Delicate divider accent line
     doc.setDrawColor(220, 220, 220);
