@@ -252,7 +252,7 @@ export default function CategoryPage() {
       }
     }
 
-    // Add branded footer to all pages
+    // Add branded footer and elegant double border to all pages
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -271,6 +271,15 @@ export default function CategoryPage() {
 
       // Right-aligned page numbers
       doc.text(`Page ${i} of ${pageCount}`, pageWidth - 14, pageHeight - 7, { align: "right" });
+
+      // Elegant double border
+      doc.setDrawColor(33, 37, 41); // Charcoal outer border
+      doc.setLineWidth(0.5);
+      doc.rect(4, 4, pageWidth - 8, pageHeight - 8, 'D');
+
+      doc.setDrawColor(220, 220, 220); // Light gray thin inner border
+      doc.setLineWidth(0.1);
+      doc.rect(4.8, 4.8, pageWidth - 9.6, pageHeight - 9.6, 'D');
     }
 
     doc.save(`${selectedCategory.name}_Inventory.pdf`);
