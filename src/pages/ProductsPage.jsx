@@ -785,8 +785,22 @@ export default function ProductsPage() {
       doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
 
       // Draw the scannable Square QR Code (generate as PWA web app URL to prevent Google Lens search redirects!)
-      const appUrl = `${window.location.origin}${window.location.pathname}#/products?scan=${product._id}`;
+      // Use deployed Render domain as fallback for localhost to guarantee mobile scans work flawlessly!
+      let linkBase = window.location.origin;
+      if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
+        linkBase = 'https://textrack.onrender.com';
+      }
+      const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
       await drawQRCode(doc, 180, 11, 16, appUrl);
+
+      // Make the QR Code area a clickable link inside digital PDF viewers
+      doc.link(180, 11, 16, 16, { url: appUrl });
+
+      // Print a premium small helper text under the QR code
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(110, 110, 110);
+      doc.text("SCAN TO VIEW", 188, 29, { align: "center" });
 
       // 4. Delicate divider accent line
       doc.setDrawColor(220, 220, 220);
