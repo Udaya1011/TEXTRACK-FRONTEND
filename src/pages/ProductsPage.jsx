@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import QRCode from 'qrcode';
+
 
 const loadImageAsBase64 = async (url) => {
   if (!url) return null;
@@ -26,96 +26,6 @@ const loadImageAsBase64 = async (url) => {
   }
 };
 
-const drawMockQRVector = (doc, x, y, size, value) => {
-  try {
-    doc.setFillColor(0, 0, 0); // Black modules
-    const modules = 21; // Version 1 QR code
-    const moduleSize = size / modules;
-
-    // Helper to draw a Finder Pattern at a specific grid position (col, row)
-    const drawFinderPattern = (col, row) => {
-      const px = x + (col * moduleSize);
-      const py = y + (row * moduleSize);
-      
-      // Outer 7x7 block
-      doc.setFillColor(0, 0, 0);
-      doc.rect(px, py, moduleSize * 7, moduleSize * 7, 'F');
-      
-      // Inner 5x5 white block
-      doc.setFillColor(255, 255, 255);
-      doc.rect(px + moduleSize, py + moduleSize, moduleSize * 5, moduleSize * 5, 'F');
-      
-      // Center 3x3 black block
-      doc.setFillColor(0, 0, 0);
-      doc.rect(px + (moduleSize * 2), py + (moduleSize * 2), moduleSize * 3, moduleSize * 3, 'F');
-    };
-
-    // Draw the 3 standard finder patterns
-    drawFinderPattern(0, 0); // Top-Left
-    drawFinderPattern(14, 0); // Top-Right
-    drawFinderPattern(0, 14); // Bottom-Left
-
-    // Fill the rest with pseudo-random black blocks based on value hash
-    const seedStr = value || "TEXTRACK";
-    let hash = 0;
-    for (let char of seedStr) {
-      hash = (hash << 5) - hash + char.charCodeAt(0);
-      hash |= 0;
-    }
-
-    doc.setFillColor(0, 0, 0);
-    for (let r = 0; r < modules; r++) {
-      for (let c = 0; c < modules; c++) {
-        // Skip finder pattern zones
-        const isTL = r < 8 && c < 8;
-        const isTR = r < 8 && c >= 13;
-        const isBL = r >= 13 && c < 8;
-        if (isTL || isTR || isBL) continue;
-
-        // Pseudo-random distribution of modules
-        const index = r * modules + c;
-        const val = Math.abs(Math.sin(hash + index));
-        if (val > 0.45) {
-          doc.rect(x + (c * moduleSize), y + (r * moduleSize), moduleSize, moduleSize, 'F');
-        }
-      }
-    }
-    
-    // Draw a neat border
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.15);
-    doc.rect(x - 0.5, y - 0.5, size + 1, size + 1, 'D');
-  } catch (err) {
-    console.error("Failed to draw vector mock QR code:", err);
-  }
-};
-
-const drawQRCode = async (doc, x, y, size, value) => {
-  try {
-    const qrStr = value || "TEXTRACK";
-    
-    // Generate a mathematically perfect, structurally correct QR code image base64 locally (as JPEG to prevent PNG transparency corruption in jsPDF!)
-    const qrBase64 = await QRCode.toDataURL(qrStr, {
-      type: 'image/jpeg',
-      margin: 1.5,
-      errorCorrectionLevel: 'M',
-      width: 180
-    });
-    
-    if (qrBase64) {
-      doc.addImage(qrBase64, 'JPEG', x, y, size, size);
-      
-      // Fine border around QR code
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.15);
-      doc.rect(x - 0.5, y - 0.5, size + 1, size + 1, 'D');
-    }
-  } catch (err) {
-    console.error("Failed to generate structurally correct QR code using local engine:", err);
-    // Draw vector mock as worst-case fallback
-    drawMockQRVector(doc, x, y, size, value);
-  }
-};
 
 const ProductCard = ({ product, onView, selectionMode, isSelected, onToggleSelect }) => {
   const imgUrl = getProductImage(product.image);
