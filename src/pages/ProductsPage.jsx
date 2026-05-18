@@ -94,15 +94,16 @@ const drawQRCode = async (doc, x, y, size, value) => {
   try {
     const qrStr = value || "TEXTRACK";
     
-    // Generate a mathematically perfect, structurally correct QR code image base64 locally (100% CORS-free and offline!)
+    // Generate a mathematically perfect, structurally correct QR code image base64 locally (as JPEG to prevent PNG transparency corruption in jsPDF!)
     const qrBase64 = await QRCode.toDataURL(qrStr, {
-      margin: 1,
+      type: 'image/jpeg',
+      margin: 1.5,
       errorCorrectionLevel: 'M',
-      width: 150
+      width: 180
     });
     
     if (qrBase64) {
-      doc.addImage(qrBase64, 'PNG', x, y, size, size);
+      doc.addImage(qrBase64, 'JPEG', x, y, size, size);
       
       // Fine border around QR code
       doc.setDrawColor(220, 220, 220);
