@@ -10,6 +10,14 @@ export const getBaseURL = () => {
   return 'https://textrack-backend.onrender.com';
 };
 
+export const getProductImage = (image) => {
+  if (!image) return '';
+  if (image.startsWith('data:') || image.startsWith('http://') || image.startsWith('https://')) {
+    return image;
+  }
+  return `${getBaseURL()}${image}`;
+};
+
 const API = axios.create({ baseURL: `${getBaseURL()}/api` });
 
 API.interceptors.request.use((config) => {

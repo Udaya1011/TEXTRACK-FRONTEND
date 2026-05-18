@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCategories, createCategory, deleteCategory, getProducts, getBaseURL } from '../api/api';
+import { getCategories, createCategory, deleteCategory, getProducts, getBaseURL, getProductImage } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Trash2, Tag, Loader2, X, Package, Download, CheckSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -419,7 +419,7 @@ export default function CategoryPage() {
 
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-dark-800 shrink-0 border border-dark-500">
                         {p.image ? (
-                          <img src={`${getBaseURL()}${p.image}`} alt={p.name} className="w-full h-full object-cover" />
+                          <img src={getProductImage(p.image)} alt={p.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center"><Package size={16} className="text-gray-600" /></div>
                         )}

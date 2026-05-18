@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getProducts, addProduction, getProductions, deleteProduction, updateProduction, getBaseURL } from '../api/api';
+import { getProducts, addProduction, getProductions, deleteProduction, updateProduction, getBaseURL, getProductImage } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Search, Loader2, Factory, X, Trash2, Calendar, ChevronLeft, ChevronRight, Package, ArrowLeft, Edit2 } from 'lucide-react';
 
@@ -313,7 +313,7 @@ export default function ProductionPage() {
                 <div key={e._id} className="card-glow overflow-hidden flex flex-col sm:flex-row border border-dark-500">
                   <div className="flex p-4 gap-4 flex-1">
                     {e.product?.image ? (
-                      <img src={`${getBaseURL()}${e.product.image}`} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border border-dark-400" />
+                      <img src={getProductImage(e.product.image)} alt="" className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border border-dark-400" />
                     ) : (
                       <div className="w-16 h-16 rounded-xl bg-dark-600 flex items-center justify-center flex-shrink-0">
                         <Factory size={24} className="text-gray-500" />

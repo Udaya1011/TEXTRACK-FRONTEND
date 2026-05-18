@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getProducts, addStockOut, getStockOuts, deleteStockOut, getBaseURL } from '../api/api';
+import { getProducts, addStockOut, getStockOuts, deleteStockOut, getBaseURL, getProductImage } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { Search, Loader2, TrendingDown, X, Trash2, Calendar, ChevronLeft, ChevronRight, Package, ArrowLeft, Minus } from 'lucide-react';
 
@@ -182,7 +182,7 @@ export default function DispatchPage() {
                   className="card-glow p-3 flex flex-col gap-2 rounded-2xl hover:scale-105 active:scale-95 transition-all outline-none border border-dark-500 text-left cursor-pointer group hover:border-red-500/50">
                   <div className="aspect-square rounded-xl overflow-hidden bg-dark-600 w-full relative">
                     {p.image ? (
-                      <img src={`${getBaseURL()}${p.image}`} alt={p.category} className="w-full h-full object-cover" />
+                      <img src={getProductImage(p.image)} alt={p.category} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center"><Package size={24} className="text-gray-500" /></div>
                     )}
@@ -225,7 +225,7 @@ export default function DispatchPage() {
               {entries.map(e => (
                 <div key={e._id} className="card-glow p-4 flex items-center gap-4">
                   {e.product?.image ? (
-                    <img src={`${getBaseURL()}${e.product.image}`} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
+                    <img src={getProductImage(e.product.image)} alt="" className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-dark-600 flex items-center justify-center flex-shrink-0">
                       <TrendingDown size={18} className="text-gray-500" />

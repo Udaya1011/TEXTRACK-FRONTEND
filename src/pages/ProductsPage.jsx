@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getProducts, createProduct, updateProduct, deleteProduct, getBaseURL } from '../api/api';
+import { getProducts, createProduct, updateProduct, deleteProduct, getBaseURL, getProductImage } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const ProductCard = ({ product, onView, selectionMode, isSelected, onToggleSelect }) => {
-  const imgUrl = product.image ? `${getBaseURL()}${product.image}` : null;
+  const imgUrl = getProductImage(product.image);
 
   return (
     <div 
@@ -51,7 +51,7 @@ const ProductCard = ({ product, onView, selectionMode, isSelected, onToggleSelec
 };
 
 const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
-  const imgUrl = product.image ? `${getBaseURL()}${product.image}` : null;
+  const imgUrl = getProductImage(product.image);
   const [varSelectMode, setVarSelectMode] = useState(false);
   const [selectedVars, setSelectedVars] = useState([]);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
