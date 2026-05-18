@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getProducts, createProduct, updateProduct, deleteProduct, getBaseURL, getProductImage, getCategories } from '../api/api';
+import { getProducts, getProduct, createProduct, updateProduct, deleteProduct, getBaseURL, getProductImage, getCategories } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -886,7 +886,41 @@ export default function ProductsPage() {
     }
   };
 
-  // Automatic download when a barcode scan matches a product name, styleName or ID exactly
+  // Intercept exact QR Code scans (MongoDB _id format: 24-character hex)
+  useEffect(() => {
+    const trimmedInput = searchInput.trim();
+    if (/^[0-9a-fA-F]{24}$/.test(trimmedInput)) {
+      console.log("QR Code scan detected! Matched exact 24-char ObjectId:", trimmedInput);
+      
+      // 1. Try to find the product locally in the current list
+      const localMatch = products.find(p => p._id === trimmedInput);
+      if (localMatch) {
+        console.log("Product found locally! Initiating instant download...");
+        autoDownloadProductPdf(localMatch);
+        setSearchInput('');
+        setSearch('');
+      } else {
+        // 2. Fetch the single product directly from backend using its ID
+        const fetchAndDownload = async () => {
+          try {
+            const { data } = await getProduct(trimmedInput);
+            if (data) {
+              console.log("Product fetched from database! Initiating instant download...");
+              autoDownloadProductPdf(data);
+            }
+          } catch (err) {
+            console.error("Failed to query product from scanned QR ID:", err);
+          } finally {
+            setSearchInput('');
+            setSearch('');
+          }
+        };
+        fetchAndDownload();
+      }
+    }
+  }, [searchInput, products]);
+
+  // Automatic download when a barcode scan matches a product name, styleName or ID exactly (linear barcodes)
   useEffect(() => {
     if (products.length === 1 && search) {
       const matchedProduct = products[0];
