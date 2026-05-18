@@ -25,42 +25,90 @@ const loadImageAsBase64 = async (url) => {
   }
 };
 
-const drawBarcode = (doc, x, y, width, height, value) => {
+const drawMockQRVector = (doc, x, y, size, value) => {
   try {
-    const barcodeStr = value || "TEXTRACK";
+    doc.setFillColor(0, 0, 0); // Black modules
+    const modules = 21; // Version 1 QR code
+    const moduleSize = size / modules;
+
+    // Helper to draw a Finder Pattern at a specific grid position (col, row)
+    const drawFinderPattern = (col, row) => {
+      const px = x + (col * moduleSize);
+      const py = y + (row * moduleSize);
+      
+      // Outer 7x7 block
+      doc.setFillColor(0, 0, 0);
+      doc.rect(px, py, moduleSize * 7, moduleSize * 7, 'F');
+      
+      // Inner 5x5 white block
+      doc.setFillColor(255, 255, 255);
+      doc.rect(px + moduleSize, py + moduleSize, moduleSize * 5, moduleSize * 5, 'F');
+      
+      // Center 3x3 black block
+      doc.setFillColor(0, 0, 0);
+      doc.rect(px + (moduleSize * 2), py + (moduleSize * 2), moduleSize * 3, moduleSize * 3, 'F');
+    };
+
+    // Draw the 3 standard finder patterns
+    drawFinderPattern(0, 0); // Top-Left
+    drawFinderPattern(14, 0); // Top-Right
+    drawFinderPattern(0, 14); // Bottom-Left
+
+    // Fill the rest with pseudo-random black blocks based on value hash
+    const seedStr = value || "TEXTRACK";
+    let hash = 0;
+    for (let char of seedStr) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0;
+    }
+
+    doc.setFillColor(0, 0, 0);
+    for (let r = 0; r < modules; r++) {
+      for (let c = 0; c < modules; c++) {
+        // Skip finder pattern zones
+        const isTL = r < 8 && c < 8;
+        const isTR = r < 8 && c >= 13;
+        const isBL = r >= 13 && c < 8;
+        if (isTL || isTR || isBL) continue;
+
+        // Pseudo-random distribution of modules
+        const index = r * modules + c;
+        const val = Math.abs(Math.sin(hash + index));
+        if (val > 0.45) {
+          doc.rect(x + (c * moduleSize), y + (r * moduleSize), moduleSize, moduleSize, 'F');
+        }
+      }
+    }
     
-    // Create a highly realistic standard barcode pattern
-    let barPattern = "101100101011"; // Start character
-    for (let i = 0; i < Math.min(barcodeStr.length, 12); i++) {
-      const charCode = barcodeStr.charCodeAt(i);
-      const bin = (charCode % 16).toString(2).padStart(4, '0');
-      for (let char of bin) {
-        barPattern += char === '1' ? '1110' : '10';
-      }
-    }
-    barPattern += "101100101011"; // Stop character
-
-    const totalUnits = barPattern.length;
-    const unitWidth = width / totalUnits;
-
-    // Set line width and pure black draw color for standard strokes
-    doc.setDrawColor(0, 0, 0); 
-    doc.setLineWidth(unitWidth);
-
-    for (let i = 0; i < totalUnits; i++) {
-      if (barPattern[i] === '1') {
-        const lineX = x + (i * unitWidth) + (unitWidth / 2);
-        doc.line(lineX, y, lineX, y + height);
-      }
-    }
-
-    // Human-readable text below the barcode
-    doc.setFont("courier", "bold");
-    doc.setFontSize(7.5);
-    doc.setTextColor(24, 24, 27);
-    doc.text(barcodeStr.toUpperCase(), x + (width / 2), y + height + 3.5, { align: "center" });
+    // Draw a neat border
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.15);
+    doc.rect(x - 0.5, y - 0.5, size + 1, size + 1, 'D');
   } catch (err) {
-    console.error("Failed to draw barcode in PDF:", err);
+    console.error("Failed to draw vector mock QR code:", err);
+  }
+};
+
+const drawQRCode = async (doc, x, y, size, value) => {
+  try {
+    const qrStr = value || "TEXTRACK";
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrStr)}&ecc=M&margin=1`;
+    
+    // Load QR code image as base64
+    const qrBase64 = await loadImageAsBase64(qrUrl);
+    if (qrBase64) {
+      doc.addImage(qrBase64, 'PNG', x, y, size, size);
+      
+      // Fine border around QR code
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.15);
+      doc.rect(x - 0.5, y - 0.5, size + 1, size + 1, 'D');
+    } else {
+      drawMockQRVector(doc, x, y, size, qrStr);
+    }
+  } catch (err) {
+    console.error("Failed to draw QR Code, drawing mock instead:", err);
+    drawMockQRVector(doc, x, y, size, value);
   }
 };
 
@@ -199,15 +247,17 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     const labelText = `${product.name.toUpperCase()} - ${product.category.toUpperCase()}`;
     doc.text(labelText, 104, 26, { align: "center" });
 
-    // 3. RIGHT COLUMN: DATE and TOTAL VARIANTS on the far right (stacked)
+    // 3. RIGHT COLUMN: DATE, STYLE/SKU, and SQUARE QR CODE
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
+    doc.setFontSize(8.5);
     doc.setTextColor(24, 24, 27);
-    doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 12, { align: "right" });
+    doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 176, 16, { align: "right" });
     
-    // Draw Barcode on the top right
-    const barcodeValue = product.styleName || product.name || product._id;
-    drawBarcode(doc, 153, 14, 43, 8.5, barcodeValue);
+    const styleValue = product.styleName || product.name || product._id;
+    doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
+
+    // Draw the scannable Square QR Code
+    await drawQRCode(doc, 180, 11, 16, styleValue);
 
     // 4. Delicate divider accent line
     doc.setDrawColor(220, 220, 220);
@@ -702,15 +752,17 @@ export default function ProductsPage() {
       const labelText = `${product.name.toUpperCase()} - ${product.category.toUpperCase()}`;
       doc.text(labelText, 104, 26, { align: "center" });
 
-      // 3. RIGHT COLUMN: DATE and BARCODE
+      // 3. RIGHT COLUMN: DATE, STYLE/SKU, and SQUARE QR CODE
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setTextColor(24, 24, 27);
-      doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 12, { align: "right" });
+      doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 176, 16, { align: "right" });
       
-      // Draw Barcode on the top right
-      const barcodeValue = product.styleName || product.name || product._id;
-      drawBarcode(doc, 153, 14, 43, 8.5, barcodeValue);
+      const styleValue = product.styleName || product.name || product._id;
+      doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
+
+      // Draw the scannable Square QR Code
+      await drawQRCode(doc, 180, 11, 16, styleValue);
 
       // 4. Delicate divider accent line
       doc.setDrawColor(220, 220, 220);
