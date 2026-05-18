@@ -710,6 +710,29 @@ export default function ProductsPage() {
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
+  // Dynamically pop detailed view modal when scanning a QR code URL from a mobile camera / Google Lens
+  useEffect(() => {
+    const scanId = searchParams.get('scan');
+    if (scanId) {
+      console.log("URL scan parameter detected:", scanId);
+      
+      const fetchAndOpen = async () => {
+        try {
+          const { data } = await getProduct(scanId);
+          if (data) {
+            setViewProduct(data);
+          }
+        } catch (err) {
+          console.error("Failed to fetch product from URL scan query:", err);
+        } finally {
+          // Clear the parameter from the URL
+          setSearchParams({});
+        }
+      };
+      fetchAndOpen();
+    }
+  }, [searchParams, setSearchParams]);
+
   const autoDownloadProductPdf = async (product) => {
     try {
       const variants = product.variants || [];
@@ -761,8 +784,9 @@ export default function ProductsPage() {
       const styleValue = product.styleName || product.name || product._id;
       doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
 
-      // Draw the scannable Square QR Code
-      await drawQRCode(doc, 180, 11, 16, styleValue);
+      // Draw the scannable Square QR Code (generate as PWA web app URL to prevent Google Lens search redirects!)
+      const appUrl = `${window.location.origin}${window.location.pathname}#/products?scan=${product._id}`;
+      await drawQRCode(doc, 180, 11, 16, appUrl);
 
       // 4. Delicate divider accent line
       doc.setDrawColor(220, 220, 220);
@@ -886,9 +910,18 @@ export default function ProductsPage() {
     }
   };
 
-  // Intercept exact QR Code scans (MongoDB _id format: 24-character hex)
+  // Intercept exact QR Code scans (MongoDB _id format: 24-character hex or QR Code URL)
   useEffect(() => {
-    const trimmedInput = searchInput.trim();
+    let trimmedInput = searchInput.trim();
+    
+    // If it is a full QR code URL scanned into the input box
+    if (trimmedInput.includes('?scan=')) {
+      const parts = trimmedInput.split('?scan=');
+      if (parts.length > 1) {
+        trimmedInput = parts[1].split('&')[0]; // Extract just the ID
+      }
+    }
+    
     if (/^[0-9a-fA-F]{24}$/.test(trimmedInput)) {
       console.log("QR Code scan detected! Matched exact 24-char ObjectId:", trimmedInput);
       
