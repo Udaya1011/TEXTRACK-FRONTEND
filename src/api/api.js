@@ -1,10 +1,16 @@
 import axios from 'axios';
 
-const API = axios.create({
-  baseURL: (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(window.location.hostname)))
-    ? `http://${window.location.hostname}:5050/api`
-    : 'https://textrack-backend.onrender.com/api'
-});
+export const getBaseURL = () => {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) {
+      return `http://${host}:5050`;
+    }
+  }
+  return 'https://textrack-backend.onrender.com';
+};
+
+const API = axios.create({ baseURL: `${getBaseURL()}/api` });
 
 API.interceptors.request.use((config) => {
   const user = JSON.parse(localStorage.getItem('textrack_user') || 'null');

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProductionStats, getStockOutStats, getProducts, getCategories } from '../api/api';
+import { getProductionStats, getStockOutStats, getProducts, getCategories, getBaseURL } from '../api/api';
 import { Package, IndianRupee, AlertTriangle, RefreshCw, Shirt, FolderOpen, X, Search, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -218,7 +218,7 @@ const DashboardModal = ({ type, products, categories, onClose }) => {
                       <tr key={r.id} className="hover:bg-dark-600/30 transition-colors">
                         <td className="py-3 px-4">
                           {r.image ? (
-                            <img src={`http://localhost:5050${r.image}`} alt="" className="w-9 h-9 rounded-lg object-cover border border-dark-600" />
+                            <img src={`${getBaseURL()}${r.image}`} alt="" className="w-9 h-9 rounded-lg object-cover border border-dark-600" />
                           ) : (
                             <div className="w-9 h-9 rounded-lg bg-dark-700 flex items-center justify-center text-[10px] text-gray-600 font-bold border border-dark-600">NO IMG</div>
                           )}
@@ -265,7 +265,7 @@ const DashboardModal = ({ type, products, categories, onClose }) => {
                           {type === 'designs' && (
                             <div className="w-10 h-10 rounded-lg overflow-hidden bg-dark-800 shrink-0 border border-dark-600">
                               {r.image ? (
-                                <img src={`http://localhost:5050${r.image}`} alt="" className="w-full h-full object-cover" />
+                                <img src={`${getBaseURL()}${r.image}`} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-[9px] text-gray-600 font-bold">NO IMG</div>
                               )}
