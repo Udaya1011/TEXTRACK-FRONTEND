@@ -6,7 +6,6 @@ import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-
 const loadImageAsBase64 = async (url) => {
   if (!url) return null;
   if (url.startsWith('data:')) return url;
@@ -62,8 +61,8 @@ const ProductCard = ({ product, onView, selectionMode, isSelected, onToggleSelec
           </div>
         </div>
         <div className="flex flex-col gap-1.5 shrink-0 border-l border-dark-600 pl-4 items-end">
-          <div className="text-xs font-bold text-gray-400">₹{product.pricePerPiece} <span className="text-[10px] font-normal">/pc</span></div>
-          <div className="text-sm font-black text-silver-light">₹{(product.stock * product.pricePerPiece).toLocaleString('en-IN')}</div>
+          <div className="text-xs font-bold text-gray-400">Γé╣{product.pricePerPiece} <span className="text-[10px] font-normal">/pc</span></div>
+          <div className="text-sm font-black text-silver-light">Γé╣{(product.stock * product.pricePerPiece).toLocaleString('en-IN')}</div>
           <div className="text-[10px] text-gray-400 font-bold bg-dark-600 px-2 py-0.5 rounded flex items-center mt-1">{product.variants?.length || 0} Colors</div>
         </div>
       </div>
@@ -303,7 +302,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
       <div className="bg-dark-800 rounded-2xl border border-dark-400 w-full sm:w-[85vw] md:w-[80vw] max-w-4xl h-[90vh] sm:h-[80vh] flex flex-col animate-slide-up shadow-2xl overflow-hidden">
         
-        {/* Header — sticky, never scrolls */}
+        {/* Header ΓÇö sticky, never scrolls */}
         <div className="flex flex-col border-b border-dark-500 bg-dark-900 shrink-0 z-10">
           {/* Top bar: buttons + close */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-dark-700">
@@ -343,7 +342,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
             <div className="grid grid-cols-3 gap-2 w-full sm:w-auto shrink-0 mt-1 sm:mt-0">
               <div className="bg-dark-800/80 px-2.5 py-1.5 rounded-xl border border-dark-600 text-center min-w-[70px]">
                 <span className="text-[9px] text-gray-500 font-bold uppercase block tracking-wider">Price</span>
-                <span className="text-xs font-black text-white mt-0.5 block">₹{product.pricePerPiece}</span>
+                <span className="text-xs font-black text-white mt-0.5 block">Γé╣{product.pricePerPiece}</span>
               </div>
               <div className="bg-dark-800/80 px-2.5 py-1.5 rounded-xl border border-dark-600 text-center min-w-[60px]">
                 <span className="text-[9px] text-gray-500 font-bold uppercase block tracking-wider">Qty</span>
@@ -351,7 +350,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
               </div>
               <div className="bg-dark-800/80 px-2.5 py-1.5 rounded-xl border border-dark-600 text-center min-w-[80px]">
                 <span className="text-[9px] text-gray-500 font-bold uppercase block tracking-wider">Amount</span>
-                <span className="text-xs font-black text-white mt-0.5 block">₹{(product.stock * product.pricePerPiece).toLocaleString('en-IN')}</span>
+                <span className="text-xs font-black text-white mt-0.5 block">Γé╣{(product.stock * product.pricePerPiece).toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -384,7 +383,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-gray-400 bg-dark-600 px-2 py-1 rounded-md">Qty: {variant.stock}</span>
-                    <span className="text-xs font-bold text-silver bg-silver/10 px-2 py-1 rounded-md border border-silver/20">₹{(variant.stock * product.pricePerPiece).toLocaleString('en-IN')}</span>
+                    <span className="text-xs font-bold text-silver bg-silver/10 px-2 py-1 rounded-md border border-silver/20">Γé╣{(variant.stock * product.pricePerPiece).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
                 
@@ -570,7 +569,7 @@ const EditProductModal = ({ product, onClose, onAdded }) => {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Price Per Piece (₹) - Optional</label>
+            <label className="block text-xs text-gray-400 mb-1.5 font-medium">Price Per Piece (Γé╣) - Optional</label>
             <input type="number" min="0" value={form.pricePerPiece} onChange={e => setForm({ ...form, pricePerPiece: e.target.value })} className="input-field" />
           </div>
 
