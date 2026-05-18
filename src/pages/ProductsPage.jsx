@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getProducts, createProduct, updateProduct, deleteProduct, getBaseURL, getProductImage } from '../api/api';
+import { getProducts, createProduct, updateProduct, deleteProduct, getBaseURL, getProductImage, getCategories } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -112,48 +112,43 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     }
 
     const doc = new jsPDF();
-    const hasImg = !!imageBase64;
-    const textStartX = hasImg ? 38 : 14;
 
-    // Draw image if available
+    // 1. LEFT COLUMN: TEXTRACK Brand label and PRODUCT STATUS
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(110, 110, 110);
+    doc.text("T E X T R A C K", 14, 12);
+
+    doc.setFontSize(14);
+    doc.setTextColor(24, 24, 27);
+    doc.text("PRODUCT STATUS", 14, 19);
+
+    // 2. CENTER COLUMN: Product Image, with Name & Category under it
     if (imageBase64) {
       try {
-        doc.addImage(imageBase64, 'JPEG', 14, 5, 20, 20);
+        doc.addImage(imageBase64, 'JPEG', 95, 4, 18, 18);
         doc.setDrawColor(200, 200, 200);
         doc.setLineWidth(0.2);
-        doc.roundedRect(14, 5, 20, 20, 1.5, 1.5, 'D');
+        doc.roundedRect(95, 4, 18, 18, 1.5, 1.5, 'D');
       } catch (err) {
         console.error("Failed to add image to PDF:", err);
       }
     }
-    
-    // 1. TEXTRACK Brand label on the left margin
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(110, 110, 110);
-    doc.text("T E X T R A C K", textStartX, 12);
+    doc.setFontSize(8.5);
+    doc.setTextColor(80, 80, 80);
+    const labelText = `${product.name.toUpperCase()} - ${product.category.toUpperCase()}`;
+    doc.text(labelText, 104, 26, { align: "center" });
 
-    // 2. PRODUCT STATUS Title below it
-    doc.setFontSize(15);
-    doc.setTextColor(24, 24, 27);
-    doc.text("PRODUCT STATUS", textStartX, 19);
-
-    // 3. DATE and TOTAL VARIANTS on the far right (stacked)
+    // 3. RIGHT COLUMN: DATE and TOTAL VARIANTS on the far right (stacked)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.5);
     doc.setTextColor(24, 24, 27);
     doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 12, { align: "right" });
     doc.text(`TOTAL VARIANTS: ${toDownload.length}`, 196, 19, { align: "right" });
 
-    // 4. Subtitle / Metadata details (clean, left-aligned)
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
-    doc.setTextColor(120, 120, 120);
-    let metaText = `Design: ${product.name.toUpperCase()}  |  Category: ${product.category}`;
-    if (includeAmount) metaText += `  |  Base Price: Rs. ${product.pricePerPiece || 0}/pc`;
-    doc.text(metaText, textStartX, 25);
-
-    // 5. Delicate divider accent line
+    // 4. Delicate divider accent line
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
     doc.line(14, 32, 196, 32);
@@ -422,9 +417,7 @@ const EditProductModal = ({ product, onClose, onAdded }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    import('../api/api').then(({ getCategories }) => {
-      getCategories().then(res => setCategories(res.data)).catch(console.error);
-    });
+    getCategories().then(res => setCategories(res.data)).catch(console.error);
   }, []);
 
   const handleImage = (e) => {
@@ -581,9 +574,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    import('../api/api').then(({ getCategories }) => {
-      getCategories().then(res => setCategories(res.data)).catch(console.error);
-    });
+    getCategories().then(res => setCategories(res.data)).catch(console.error);
   }, []);
   
   const fetchProducts = useCallback(async () => {
@@ -603,8 +594,7 @@ export default function ProductsPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this product?')) return;
-    const { deleteProduct: del } = await import('../api/api');
-    await del(id);
+    await deleteProduct(id);
     if (viewProduct?._id === id) setViewProduct(null);
     fetchProducts();
   };
