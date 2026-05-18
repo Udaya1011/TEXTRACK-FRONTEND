@@ -895,18 +895,18 @@ export default function ProductsPage() {
       // 1. Try to find the product locally in the current list
       const localMatch = products.find(p => p._id === trimmedInput);
       if (localMatch) {
-        console.log("Product found locally! Initiating instant download...");
-        autoDownloadProductPdf(localMatch);
+        console.log("Product found locally! Opening view modal...");
+        setViewProduct(localMatch);
         setSearchInput('');
         setSearch('');
       } else {
         // 2. Fetch the single product directly from backend using its ID
-        const fetchAndDownload = async () => {
+        const fetchAndOpen = async () => {
           try {
             const { data } = await getProduct(trimmedInput);
             if (data) {
-              console.log("Product fetched from database! Initiating instant download...");
-              autoDownloadProductPdf(data);
+              console.log("Product fetched from database! Opening view modal...");
+              setViewProduct(data);
             }
           } catch (err) {
             console.error("Failed to query product from scanned QR ID:", err);
@@ -915,12 +915,12 @@ export default function ProductsPage() {
             setSearch('');
           }
         };
-        fetchAndDownload();
+        fetchAndOpen();
       }
     }
   }, [searchInput, products]);
 
-  // Automatic download when a barcode scan matches a product name, styleName or ID exactly (linear barcodes)
+  // Automatic modal pop when a barcode scan matches a product name, styleName or ID exactly (linear barcodes)
   useEffect(() => {
     if (products.length === 1 && search) {
       const matchedProduct = products[0];
@@ -932,8 +932,8 @@ export default function ProductsPage() {
         matchedProduct._id.trim().toLowerCase() === normalizedSearch;
         
       if (isExactMatch) {
-        console.log("Barcode scan matched! Initiating automatic PDF download for:", matchedProduct.name);
-        autoDownloadProductPdf(matchedProduct);
+        console.log("Barcode scan matched! Opening view modal for:", matchedProduct.name);
+        setViewProduct(matchedProduct);
         // Clear search to prevent loop
         setSearch('');
         setSearchInput('');
@@ -941,9 +941,7 @@ export default function ProductsPage() {
     }
   }, [products, search]);
 
-
-
-  const handleForceDownload = async () => {
+  const handleForceView = async () => {
     const queryStr = searchInput.trim();
     if (!queryStr) return alert("Please type or scan a product code first!");
 
@@ -953,7 +951,7 @@ export default function ProductsPage() {
       if (/^[0-9a-fA-F]{24}$/.test(queryStr)) {
         const { data } = await getProduct(queryStr);
         if (data) {
-          await autoDownloadProductPdf(data);
+          setViewProduct(data);
           setSearchInput('');
           setSearch('');
           return;
@@ -963,15 +961,15 @@ export default function ProductsPage() {
       // 2. Otherwise search by styleName / name exactly
       const { data } = await getProducts({ search: queryStr, limit: 1 });
       if (data && data.products && data.products.length > 0) {
-        await autoDownloadProductPdf(data.products[0]);
+        setViewProduct(data.products[0]);
         setSearchInput('');
         setSearch('');
       } else {
         alert(`Could not find any product matching "${queryStr}". Please verify the scanned code.`);
       }
     } catch (err) {
-      console.error("Force download failed:", err);
-      alert("Failed to download scanned product report. Please check your network connection.");
+      console.error("Force view failed:", err);
+      alert("Failed to fetch scanned product details. Please check your network connection.");
     } finally {
       setLoading(false);
     }
@@ -1304,11 +1302,11 @@ export default function ProductsPage() {
             <div className="mt-6 flex justify-center animate-slide-up">
               <button 
                 type="button"
-                onClick={handleForceDownload}
+                onClick={handleForceView}
                 className="py-2.5 px-5 bg-gradient-to-r from-silver/20 to-silver-light/20 hover:from-silver/30 hover:to-silver-light/30 border border-silver/30 rounded-xl text-xs font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 group active:scale-[0.98] cursor-pointer shadow-lg hover:shadow-silver/5"
               >
-                <Download size={14} className="text-silver animate-bounce group-hover:scale-110" />
-                Download Scanned Report Directly
+                <Search size={14} className="text-silver animate-pulse" />
+                View Scanned Product Details
               </button>
             </div>
           )}
