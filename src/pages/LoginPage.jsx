@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../api/api';
-import { Shirt, Eye, EyeOff, Loader2, Lock, Phone } from 'lucide-react';
+import { Shirt, Eye, EyeOff, Loader2, Lock, Phone, Download } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -11,6 +11,36 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setIsInstallable(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+    setIsInstallable(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -94,6 +124,19 @@ export default function LoginPage() {
           <p className="text-center text-xs text-gray-600 mt-5">
             Contact admin to get your credentials
           </p>
+
+          {isInstallable && (
+            <div className="mt-4 pt-4 border-t border-dark-600 animate-slide-up">
+              <button 
+                type="button" 
+                onClick={handleInstallClick} 
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-silver/20 to-silver-light/20 hover:from-silver/30 hover:to-silver-light/30 border border-silver/30 rounded-xl text-xs font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 group active:scale-[0.98] cursor-pointer shadow-lg hover:shadow-silver/5"
+              >
+                <Download size={14} className="text-silver animate-bounce group-hover:scale-110" />
+                Install TexTrack App
+              </button>
+            </div>
+          )}
         </div>
 
         <p className="text-center text-xs text-gray-700 mt-4">
