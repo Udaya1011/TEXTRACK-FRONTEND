@@ -27,7 +27,6 @@ const loadImageAsBase64 = async (url) => {
 
 const drawBarcode = (doc, x, y, width, height, value) => {
   try {
-    doc.setFillColor(0, 0, 0); // Black bars
     const barcodeStr = value || "TEXTRACK";
     
     // Create a highly realistic standard barcode pattern
@@ -44,9 +43,14 @@ const drawBarcode = (doc, x, y, width, height, value) => {
     const totalUnits = barPattern.length;
     const unitWidth = width / totalUnits;
 
+    // Set line width and pure black draw color for standard strokes
+    doc.setDrawColor(0, 0, 0); 
+    doc.setLineWidth(unitWidth);
+
     for (let i = 0; i < totalUnits; i++) {
       if (barPattern[i] === '1') {
-        doc.rect(x + (i * unitWidth), y, unitWidth, height, 'F');
+        const lineX = x + (i * unitWidth) + (unitWidth / 2);
+        doc.line(lineX, y, lineX, y + height);
       }
     }
 
@@ -203,7 +207,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     
     // Draw Barcode on the top right
     const barcodeValue = product.styleName || product.name || product._id;
-    drawBarcode(doc, 155, 15, 41, 7, barcodeValue);
+    drawBarcode(doc, 153, 14, 43, 8.5, barcodeValue);
 
     // 4. Delicate divider accent line
     doc.setDrawColor(220, 220, 220);
@@ -706,7 +710,7 @@ export default function ProductsPage() {
       
       // Draw Barcode on the top right
       const barcodeValue = product.styleName || product.name || product._id;
-      drawBarcode(doc, 155, 15, 41, 7, barcodeValue);
+      drawBarcode(doc, 153, 14, 43, 8.5, barcodeValue);
 
       // 4. Delicate divider accent line
       doc.setDrawColor(220, 220, 220);
