@@ -61,8 +61,8 @@ const ProductCard = ({ product, onView, selectionMode, isSelected, onToggleSelec
           </div>
         </div>
         <div className="flex flex-col gap-1.5 shrink-0 border-l border-dark-600 pl-4 items-end">
-          <div className="text-xs font-bold text-gray-400">Γé╣{product.pricePerPiece} <span className="text-[10px] font-normal">/pc</span></div>
-          <div className="text-sm font-black text-silver-light">Γé╣{(product.stock * product.pricePerPiece).toLocaleString('en-IN')}</div>
+          <div className="text-xs font-bold text-gray-400">&#8377;{product.pricePerPiece} <span className="text-[10px] font-normal">/pc</span></div>
+          <div className="text-sm font-black text-silver-light">&#8377;{(product.stock * product.pricePerPiece).toLocaleString('en-IN')}</div>
           <div className="text-[10px] text-gray-400 font-bold bg-dark-600 px-2 py-0.5 rounded flex items-center mt-1">{product.variants?.length || 0} Colors</div>
         </div>
       </div>
