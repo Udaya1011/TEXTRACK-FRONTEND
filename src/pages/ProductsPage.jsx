@@ -943,6 +943,40 @@ export default function ProductsPage() {
 
 
 
+  const handleForceDownload = async () => {
+    const queryStr = searchInput.trim();
+    if (!queryStr) return alert("Please type or scan a product code first!");
+
+    setLoading(true);
+    try {
+      // 1. If it is a MongoDB ObjectId
+      if (/^[0-9a-fA-F]{24}$/.test(queryStr)) {
+        const { data } = await getProduct(queryStr);
+        if (data) {
+          await autoDownloadProductPdf(data);
+          setSearchInput('');
+          setSearch('');
+          return;
+        }
+      }
+
+      // 2. Otherwise search by styleName / name exactly
+      const { data } = await getProducts({ search: queryStr, limit: 1 });
+      if (data && data.products && data.products.length > 0) {
+        await autoDownloadProductPdf(data.products[0]);
+        setSearchInput('');
+        setSearch('');
+      } else {
+        alert(`Could not find any product matching "${queryStr}". Please verify the scanned code.`);
+      }
+    } catch (err) {
+      console.error("Force download failed:", err);
+      alert("Failed to download scanned product report. Please check your network connection.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this product?')) return;
     await deleteProduct(id);
@@ -1265,7 +1299,19 @@ export default function ProductsPage() {
       ) : products.length === 0 ? (
         <div className="text-center py-16 text-gray-600">
           <Package size={40} className="mx-auto mb-3 opacity-30" />
-          <p>No products found</p>
+          <p className="text-sm">No products found</p>
+          {searchInput && (
+            <div className="mt-6 flex justify-center animate-slide-up">
+              <button 
+                type="button"
+                onClick={handleForceDownload}
+                className="py-2.5 px-5 bg-gradient-to-r from-silver/20 to-silver-light/20 hover:from-silver/30 hover:to-silver-light/30 border border-silver/30 rounded-xl text-xs font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 group active:scale-[0.98] cursor-pointer shadow-lg hover:shadow-silver/5"
+              >
+                <Download size={14} className="text-silver animate-bounce group-hover:scale-110" />
+                Download Scanned Report Directly
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
