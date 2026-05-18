@@ -77,6 +77,25 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     }
   };
 
+  const loadImageAsBase64 = async (url) => {
+    if (!url) return null;
+    if (url.startsWith('data:')) return url;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Fetch failed");
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.error("Error loading image as base64:", err);
+      return null;
+    }
+  };
+
   const executeDownload = async (includeAmount) => {
     const variants = product.variants || [];
     const toDownload = (varSelectMode && selectedVars.length > 0)
@@ -85,18 +104,39 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
 
     if (toDownload.length === 0) return alert('No variants to download');
 
+    // Load product image as base64 first
+    let imageBase64 = null;
+    if (product.image) {
+      const imgUrl = getProductImage(product.image);
+      imageBase64 = await loadImageAsBase64(imgUrl);
+    }
+
     const doc = new jsPDF();
+    const hasImg = !!imageBase64;
+    const textStartX = hasImg ? 38 : 14;
+
+    // Draw image if available
+    if (imageBase64) {
+      try {
+        doc.addImage(imageBase64, 'JPEG', 14, 5, 20, 20);
+        doc.setDrawColor(200, 200, 200);
+        doc.setLineWidth(0.2);
+        doc.roundedRect(14, 5, 20, 20, 1.5, 1.5, 'D');
+      } catch (err) {
+        console.error("Failed to add image to PDF:", err);
+      }
+    }
     
     // 1. TEXTRACK Brand label on the left margin
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(110, 110, 110);
-    doc.text("T E X T R A C K", 14, 12);
+    doc.text("T E X T R A C K", textStartX, 12);
 
     // 2. PRODUCT STATUS Title below it
     doc.setFontSize(15);
     doc.setTextColor(24, 24, 27);
-    doc.text("PRODUCT STATUS", 14, 19);
+    doc.text("PRODUCT STATUS", textStartX, 19);
 
     // 3. DATE and TOTAL VARIANTS on the far right (stacked)
     doc.setFont("helvetica", "bold");
@@ -111,7 +151,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     doc.setTextColor(120, 120, 120);
     let metaText = `Design: ${product.name.toUpperCase()}  |  Category: ${product.category}`;
     if (includeAmount) metaText += `  |  Base Price: Rs. ${product.pricePerPiece || 0}/pc`;
-    doc.text(metaText, 14, 25);
+    doc.text(metaText, textStartX, 25);
 
     // 5. Delicate divider accent line
     doc.setDrawColor(220, 220, 220);
