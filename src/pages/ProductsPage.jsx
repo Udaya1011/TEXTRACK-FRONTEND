@@ -792,32 +792,14 @@ export default function ProductsPage() {
       const labelText = `${product.name.toUpperCase()} - ${product.category.toUpperCase()}`;
       doc.text(labelText, 104, 26, { align: "center" });
 
-      // 3. RIGHT COLUMN: DATE, STYLE/SKU, and SQUARE QR CODE
+      // 3. RIGHT COLUMN: DATE and STYLE/SKU
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(24, 24, 27);
-      doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 176, 16, { align: "right" });
+      doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 16, { align: "right" });
       
       const styleValue = product.styleName || product.name || product._id;
-      doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
-
-      // Draw the scannable Square QR Code (generate as PWA web app URL to prevent Google Lens search redirects!)
-      // Use deployed Render domain as fallback for localhost to guarantee mobile scans work flawlessly!
-      let linkBase = window.location.origin;
-      if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
-        linkBase = 'https://textrack.onrender.com';
-      }
-      const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
-      await drawQRCode(doc, 180, 11, 16, appUrl);
-
-      // Make the QR Code area a clickable link inside digital PDF viewers
-      doc.link(180, 11, 16, 16, { url: appUrl });
-
-      // Print a premium small helper text under the QR code
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(6.5);
-      doc.setTextColor(110, 110, 110);
-      doc.text("SCAN TO VIEW", 188, 29, { align: "center" });
+      doc.text(`STYLE: ${styleValue.toUpperCase()}`, 196, 23, { align: "right" });
 
       // 4. Delicate divider accent line
       doc.setDrawColor(220, 220, 220);
