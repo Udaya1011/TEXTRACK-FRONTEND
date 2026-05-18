@@ -699,6 +699,18 @@ export default function ProductsPage() {
 
   useEffect(() => {
     getCategories().then(res => setCategories(res.data)).catch(console.error);
+
+    // Dynamic proactive cache-busting to immediately purge old PWA Service Worker assets
+    if ('caches' in window) {
+      caches.keys().then((keys) => {
+        keys.forEach((key) => {
+          if (key !== 'textrack-cache-v3') {
+            console.log("Purging old service worker cache:", key);
+            caches.delete(key);
+          }
+        });
+      }).catch(err => console.error("Cache purge failed:", err));
+    }
   }, []);
   
   const fetchProducts = useCallback(async () => {
