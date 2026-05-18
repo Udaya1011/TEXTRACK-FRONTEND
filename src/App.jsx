@@ -9,6 +9,7 @@ import CategoryPage from './pages/CategoryPage';
 import AddProductPage from './pages/AddProductPage';
 import UsersPage from './pages/UsersPage';
 import ProfilePage from './pages/ProfilePage';
+import PublicDownloadPage from './pages/PublicDownloadPage';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <HashRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/download" element={<PublicDownloadPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
           <Route path="/dashboard" element={

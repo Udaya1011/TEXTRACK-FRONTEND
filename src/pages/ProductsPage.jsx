@@ -173,7 +173,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
       linkBase = 'https://textrack.onrender.com';
     }
-    const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
+    const appUrl = `${linkBase}${window.location.pathname}#/download?id=${product._id}`;
     
     try {
       const qrBase64 = await QRCode.toDataURL(appUrl, { type: 'image/jpeg', margin: 1, errorCorrectionLevel: 'M', width: 180 });
@@ -336,7 +336,7 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
       if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
         linkBase = 'https://textrack.onrender.com';
       }
-      const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
+      const appUrl = `${linkBase}${window.location.pathname}#/download?id=${product._id}`;
       
       // Generate QR base64 locally (JPEG)
       const qrBase64 = await QRCode.toDataURL(appUrl, {
@@ -811,7 +811,7 @@ export default function ProductsPage() {
       if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
         linkBase = 'https://textrack.onrender.com';
       }
-      const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
+      const appUrl = `${linkBase}${window.location.pathname}#/download?id=${product._id}`;
       
       try {
         const qrBase64 = await QRCode.toDataURL(appUrl, { type: 'image/jpeg', margin: 1, errorCorrectionLevel: 'M', width: 180 });
