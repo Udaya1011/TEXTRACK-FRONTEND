@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import Layout from './components/Layout';
@@ -13,7 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -38,7 +38,7 @@ export default function App() {
           } />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </AuthProvider>
   );
 }
