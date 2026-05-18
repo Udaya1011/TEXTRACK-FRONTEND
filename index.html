@@ -19,7 +19,11 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('ServiceWorker registered:', reg))
+            .then(reg => {
+              console.log('ServiceWorker registered:', reg);
+              // Force update check on every page load to detect new deployments instantly
+              reg.update();
+            })
             .catch(err => console.log('ServiceWorker registration failed:', err));
         });
       }
