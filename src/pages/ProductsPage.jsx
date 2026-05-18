@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 const loadImageAsBase64 = async (url) => {
   if (!url) return null;
@@ -92,10 +93,14 @@ const drawMockQRVector = (doc, x, y, size, value) => {
 const drawQRCode = async (doc, x, y, size, value) => {
   try {
     const qrStr = value || "TEXTRACK";
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrStr)}&ecc=M&margin=1`;
     
-    // Load QR code image as base64
-    const qrBase64 = await loadImageAsBase64(qrUrl);
+    // Generate a mathematically perfect, structurally correct QR code image base64 locally (100% CORS-free and offline!)
+    const qrBase64 = await QRCode.toDataURL(qrStr, {
+      margin: 1,
+      errorCorrectionLevel: 'M',
+      width: 150
+    });
+    
     if (qrBase64) {
       doc.addImage(qrBase64, 'PNG', x, y, size, size);
       
@@ -103,11 +108,10 @@ const drawQRCode = async (doc, x, y, size, value) => {
       doc.setDrawColor(220, 220, 220);
       doc.setLineWidth(0.15);
       doc.rect(x - 0.5, y - 0.5, size + 1, size + 1, 'D');
-    } else {
-      drawMockQRVector(doc, x, y, size, qrStr);
     }
   } catch (err) {
-    console.error("Failed to draw QR Code, drawing mock instead:", err);
+    console.error("Failed to generate structurally correct QR code using local engine:", err);
+    // Draw vector mock as worst-case fallback
     drawMockQRVector(doc, x, y, size, value);
   }
 };
