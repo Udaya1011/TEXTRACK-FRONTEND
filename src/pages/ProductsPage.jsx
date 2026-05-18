@@ -165,11 +165,31 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     // 3. RIGHT COLUMN: DATE, STYLE/SKU, and SQUARE QR CODE
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
-    doc.setTextColor(24, 24, 27);
-    doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 16, { align: "right" });
-    
     const styleValue = product.styleName || product.name || product._id;
-    doc.text(`STYLE: ${styleValue.toUpperCase()}`, 196, 23, { align: "right" });
+    doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
+
+    // Draw the scannable Square QR Code (JPEG format to prevent PDF corruption)
+    let linkBase = window.location.origin;
+    if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
+      linkBase = 'https://textrack.onrender.com';
+    }
+    const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
+    
+    try {
+      const qrBase64 = await QRCode.toDataURL(appUrl, { type: 'image/jpeg', margin: 1, errorCorrectionLevel: 'M', width: 180 });
+      doc.addImage(qrBase64, 'JPEG', 180, 11, 16, 16);
+      doc.link(180, 11, 16, 16, { url: appUrl }); // Make clickable in PDF viewers
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.15);
+      doc.rect(179.5, 10.5, 17, 17, 'D'); // Neat border
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(6.5);
+      doc.setTextColor(110, 110, 110);
+      doc.text("SCAN TO VIEW", 188, 29, { align: "center" });
+    } catch (err) {
+      console.error("Failed to add QR code to PDF:", err);
+    }
 
     // 4. Delicate divider accent line
     doc.setDrawColor(220, 220, 220);
@@ -783,11 +803,31 @@ export default function ProductsPage() {
       // 3. RIGHT COLUMN: DATE and STYLE/SKU
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
-      doc.setTextColor(24, 24, 27);
-      doc.text(`DATE: ${new Date().toLocaleDateString('en-IN')}`, 196, 16, { align: "right" });
-      
       const styleValue = product.styleName || product.name || product._id;
-      doc.text(`STYLE: ${styleValue.toUpperCase()}`, 196, 23, { align: "right" });
+      doc.text(`STYLE: ${styleValue.toUpperCase()}`, 176, 23, { align: "right" });
+
+      // Draw the scannable Square QR Code (JPEG format to prevent PDF corruption)
+      let linkBase = window.location.origin;
+      if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
+        linkBase = 'https://textrack.onrender.com';
+      }
+      const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
+      
+      try {
+        const qrBase64 = await QRCode.toDataURL(appUrl, { type: 'image/jpeg', margin: 1, errorCorrectionLevel: 'M', width: 180 });
+        doc.addImage(qrBase64, 'JPEG', 180, 11, 16, 16);
+        doc.link(180, 11, 16, 16, { url: appUrl }); // Make clickable in PDF viewers
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.15);
+        doc.rect(179.5, 10.5, 17, 17, 'D'); // Neat border
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(6.5);
+        doc.setTextColor(110, 110, 110);
+        doc.text("SCAN TO VIEW", 188, 29, { align: "center" });
+      } catch (err) {
+        console.error("Failed to add QR code to auto PDF:", err);
+      }
 
       // 4. Delicate divider accent line
       doc.setDrawColor(220, 220, 220);
