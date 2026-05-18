@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getProducts, getProduct, createProduct, updateProduct, deleteProduct, getBaseURL, getProductImage, getCategories } from '../api/api';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare } from 'lucide-react';
+import { Plus, Search, X, Loader2, AlertTriangle, Upload, Edit2, Trash2, Package, IndianRupee, Download, CheckSquare, Printer } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 const loadImageAsBase64 = async (url) => {
   if (!url) return null;
@@ -295,6 +296,84 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
     doc.save(`${product.name}_Report.pdf`);
   };
 
+  const executePrintLabels = async () => {
+    try {
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth(); // 210
+      const pageHeight = doc.internal.pageSize.getHeight(); // 297
+
+      // A4 grid settings
+      const marginX = 10;
+      const marginY = 10;
+      const cols = 4;
+      const rows = 7;
+      
+      const stickerWidth = (pageWidth - (marginX * 2)) / cols; // ~47.5mm
+      const stickerHeight = (pageHeight - (marginY * 2)) / rows; // ~39.5mm
+      
+      // Calculate scannable web app URL
+      let linkBase = window.location.origin;
+      if (linkBase.includes('localhost') || linkBase.includes('127.0.0.1')) {
+        linkBase = 'https://textrack.onrender.com';
+      }
+      const appUrl = `${linkBase}${window.location.pathname}#/products?scan=${product._id}`;
+      
+      // Generate QR base64 locally (JPEG)
+      const qrBase64 = await QRCode.toDataURL(appUrl, {
+        type: 'image/jpeg',
+        margin: 1,
+        errorCorrectionLevel: 'M',
+        width: 150
+      });
+
+      const maxStickers = cols * rows; // 28 stickers per page
+
+      for (let i = 0; i < maxStickers; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        
+        const startX = marginX + (col * stickerWidth);
+        const startY = marginY + (row * stickerHeight);
+        
+        // Subtle dotted sticker boundary box
+        doc.setDrawColor(210, 210, 210);
+        doc.setLineWidth(0.1);
+        doc.rect(startX, startY, stickerWidth, stickerHeight, 'D');
+
+        // Draw Square QR Code
+        const qrSize = 22; // mm
+        const qrX = startX + (stickerWidth - qrSize) / 2;
+        const qrY = startY + 2;
+        doc.addImage(qrBase64, 'JPEG', qrX, qrY, qrSize, qrSize);
+        
+        // Print Product Title under QR
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(6.5);
+        doc.setTextColor(24, 24, 27);
+        const truncate = (str, len) => str.length > len ? str.substring(0, len-2) + '..' : str;
+        const labelText = truncate(product.name.toUpperCase(), 20);
+        
+        doc.text(labelText, startX + stickerWidth/2, qrY + qrSize + 4, { align: "center" });
+        
+        // Print Style/SKU ID
+        doc.setFontSize(5.5);
+        doc.setTextColor(80, 80, 80);
+        const styleText = product.styleName ? product.styleName.toUpperCase() : product._id.slice(-6).toUpperCase();
+        doc.text(`STYLE: ${styleText}`, startX + stickerWidth/2, qrY + qrSize + 7.5, { align: "center" });
+
+        // Print Price boldly
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(10, 10, 10);
+        doc.text(`Rs. ${product.pricePerPiece}`, startX + stickerWidth/2, qrY + qrSize + 10.5, { align: "center" });
+      }
+
+      doc.save(`${product.name}_QR_Stickers.pdf`);
+    } catch (err) {
+      console.error("Failed to generate QR stickers:", err);
+      alert("Failed to generate labels.");
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-sm">
       <div className="bg-dark-800 rounded-2xl border border-dark-400 w-full sm:w-[85vw] md:w-[80vw] max-w-4xl h-[90vh] sm:h-[80vh] flex flex-col animate-slide-up shadow-2xl overflow-hidden">
@@ -313,6 +392,9 @@ const ViewProductModal = ({ product, onClose, isAdmin, onDelete, onEdit }) => {
               </button>
               <button onClick={() => setShowDownloadModal(true)} className="p-1.5 rounded-lg bg-silver text-dark-900 hover:bg-silver-light transition-colors" title={varSelectMode && selectedVars.length > 0 ? `Download (${selectedVars.length})` : 'Download'}>
                 <Download size={16} />
+              </button>
+              <button onClick={executePrintLabels} className="p-1.5 rounded-lg bg-dark-600 text-gray-300 hover:bg-dark-500 border border-dark-500 transition-colors" title="Print QR Stickers">
+                <Printer size={16} />
               </button>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-dark-600 text-gray-400 transition-colors"><X size={20} /></button>
